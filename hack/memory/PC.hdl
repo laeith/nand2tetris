@@ -1,0 +1,33 @@
+/**
+ * A 16-bit counter with load and reset control bits.
+ * if      (reset[t] == 1) out[t+1] = 0
+ * else if (load[t] == 1)  out[t+1] = in[t]
+ * else if (inc[t] == 1)   out[t+1] = out[t] + 1  (integer addition)
+ * else                    out[t+1] = out[t]
+ *
+ *
+ * deith:
+ * Well, those checks might not be pretty but seem required to make sure 
+ * that the precedence of instructions is kept intact.
+ */
+
+CHIP PC {
+    IN in[16],load,inc,reset;
+    OUT out[16];
+
+    PARTS:
+    // check if should increment PC
+    Inc16(in=previousCounter, out=incrementedCounter);
+    Mux16(a=in, b=incrementedCounter, sel=inc, out=value1);
+
+    // check if should simply load input into PC if so override increment instruction
+    Mux16(a=incrementedCounter, b=in, sel=load, out=value2);
+
+    // check if reset is 1, if so then ignore both increment and load markers
+    Mux16(a=value, b=false, sel=reset, out=result)
+   
+    // call register, load is always true because even if reading is executed then overwriting an existing value
+    // with the same value is harmless, if that operation would turn out to be costly for some reason it's fairly
+    // easy to make two Or checks if loading is really needed.
+    Register(in=result, load=true, out=out, out=previousCounter);
+}

@@ -15,6 +15,8 @@ import sys
 import re
 from memorylayout import MemoryLayout
 
+global CURRENT_MEMORY_LAYOUT
+
 DEST = {"null": "000",
         "M": "001",
         "D": "010",
@@ -62,12 +64,9 @@ COMP = {"0": "0101010",
         "D&M": "1000000",
         "D|M": "1010101"}
 
-CURRENT_MEMORY_LAYOUT = MemoryLayout()
-
 
 def assemble(file_name) -> list:
-    """
-
+    """Entry point for compilation (assembling) process.
 
     :param file_name:
     :return: a list of tuples: (line_number, assembly_code_line, machine_code_line)
@@ -81,7 +80,7 @@ def assemble(file_name) -> list:
     allocate_all_branches(file_name)
 
     # Second iteration - actual compilation from Hack Language to machine code
-    with open('../tests/' + file_name, 'r') as input_file:
+    with open(file_name, 'r') as input_file:
         line_counter = 0
         for line in input_file:
             line = strip_asm_line(line)
@@ -98,30 +97,38 @@ def assemble(file_name) -> list:
     return translation
 
 
-def allocate_all_branches(file_name):
+def allocate_all_branches(file_name: str) -> None:
     """
-    Goes through *.asm source code, finds and allocates memory (ROM) for each unique branch label.
+    Goes through *.asm source code, finds and allocates memory (ROM) for each unique branch label
+    using previously created MemoryLayout object (by assemble function). Thus watch out, unlike
+    most of these functions this one is NOT PURE.
 
-    :param file_name: TODO: hmm
+    :param file_name: string of relative or absolute file path including file extension
     """
-    with open('../tests/' + file_name, 'r') as input_file:
+    global CURRENT_MEMORY_LAYOUT
+
+    with open(file_name, 'r') as input_file:
         current_ROM_address = 0
         for line in input_file:
             line = line.strip().replace(" ", "")
             if line and not line.startswith("//"):
-                if re.fullmatch('\(([^)(]+)\)',
-                                line):  # TODO: what happens when someone inserts an empty label? or 2 labels one under another? What if the same label was created twice?
+                if re.fullmatch('\(([^)( ]+)\)', line):
                     CURRENT_MEMORY_LAYOUT.allocate_branch(line[1:-1], current_ROM_address)
                     current_ROM_address -= 1
                 current_ROM_address += 1
 
 
 def parse(line: str) -> str:
+    """ Tries to validate provided line and find out which instruction was given, then translates
+    those into their corresponding machine code (16-bit binary instructions).
+
+    :param line: A-type or C-type instruction
+    :return: 16-bit binary instruction for Hack machine code
+    """
     if is_valid_A_instruction(line):  # is it A-type instruction?
-        binary_code = "0"  # requires 15 more bits representing memory
+        binary_code = "0"
         binary_code += translate_A_instruction(line[1:])
     elif is_valid_C_instruction(line):  # is it C-type instruction?
-        # validate syntax
         binary_code = "111"
         binary_code += translate_C_instruction(line)
     else:
@@ -138,15 +145,15 @@ def translate_A_instruction(memory_address_representation: str) -> str:
     :return: 15-bit memory address
     """
     if memory_address_representation.isdigit():
-        return to_binary_from_dec(memory_address_representation)
+        return to_binary_from_dec(int(memory_address_representation))
     else:
         decimal_memory = CURRENT_MEMORY_LAYOUT.get_memory_address(memory_address_representation)
         return to_binary_from_dec(decimal_memory)
 
 
-def to_binary_from_dec(memory_address_representation):
+def to_binary_from_dec(memory_address_representation: int) -> bin:
     binary_address = bin(int(memory_address_representation))[2:19]
-    if len(binary_address) < 15:  #
+    if len(binary_address) < 15:
         padding = "0" * (15 - len(binary_address))
         binary_address = padding + binary_address
     return binary_address
@@ -166,7 +173,7 @@ def translate_C_instruction(line: str) -> str:
     if ';' in line:  # Is it a jump instruction?
         split_jump = line.split(';')
         binary_jump = JUMP[split_jump[1]]
-        if '=' in split_jump[0]:
+        if '=' in split_jump[0]:  # does it contain assignment?
             split_assignment = split_jump[0].split("=")
             binary_dest = DEST[split_assignment[0]]
             binary_comp = COMP[split_assignment[1]]
@@ -174,11 +181,10 @@ def translate_C_instruction(line: str) -> str:
             binary_comp = COMP[split_jump[0]]
         else:
             raise ValueError("COMP instruction was either not provided or incorrectly declared.")
-
     elif '=' in line:  # Is it C-type instruction but not a jumping one?
         split_assignment = line.split("=")
         if (split_assignment[0] not in DEST) or (split_assignment[1] not in COMP):
-            raise ValueError("Either DEST or COMP value is incorrectly declared.")
+            raise ValueError("Either DEST or COMP value was incorrectly declared.")
         binary_dest = DEST[split_assignment[0]]
         binary_comp = COMP[split_assignment[1]]
 
@@ -210,7 +216,7 @@ def is_valid_C_instruction(line: str) -> bool:
     return False
 
 
-def strip_asm_line(line):
+def strip_asm_line(line: str) -> str:
     if "//" in line:
         comment_start = line.find('//')
         line = line[:comment_start]
@@ -221,12 +227,18 @@ def strip_asm_line(line):
 if __name__ == "__main__":
     args = sys.argv
 
-    if len(args) > 3 or not args[1].endswith('.asm'):
+    if len(args) > 2 or not args[1].endswith('.asm'):
         print(
             "Incorrect arguments, specify exactly one argument with filename name ie. "
-            "'HackAssembler somefile.asm', file has to end with .asm extension.")
+            "'HackAssembler somefile.asm', file has to have a *.asm extension.")
     else:
         file_name = args[1]
         print("Starting the compilation process...")
-        somelist = assemble(file_name)
-        print("Compilation has finished >> " + args[2] + ".hack")
+        translation = assemble(file_name)
+        output_name = args[1][:-4] + ".hack"
+        print("Compilation finished, writing to %s" % output_name)
+        with open(output_name, "w+") as output_file:
+            for line_number, line, machine_code in translation:
+                output_file.write(machine_code + "\n")
+
+        print("Compilation has finished >> " + output_name)

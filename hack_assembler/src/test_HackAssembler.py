@@ -16,7 +16,7 @@ class TestHackAssembler(unittest.TestCase):
             if file.endswith(".asm"):
                 compare_file = open("../tests/" + file[:-4] + ".hack", 'r')
 
-                translation = HackAssembler.assemble(file)
+                translation = HackAssembler.assemble("../tests/" + file)
                 expected_translation = [line.strip() for line in compare_file]
 
                 result = True
@@ -36,6 +36,7 @@ class TestHackAssembler(unittest.TestCase):
 
     @staticmethod
     def single_test(file_name):
+        """ Method intended for manual debugging / usage. """
         translation = HackAssembler.assemble(file_name + ".asm")
         with open("../tests/" + file_name + ".hack", 'r') as source:
             expected = []

@@ -22,4 +22,4 @@
       
 
 ## Instructions:
-      - yeye maybe one day when it's finished
+   - One day, when part 2 is finished.

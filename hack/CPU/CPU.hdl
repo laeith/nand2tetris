@@ -1,4 +1,5 @@
 /**
+ * (desc provided by course staff)
  * The Hack CPU (Central Processing unit), consisting of an ALU,
  * two registers named A and D, and a program counter named PC.
  * The CPU is designed to fetch and execute instructions written in 
@@ -29,7 +30,7 @@ CHIP CPU {
                          // the current program (reset==0).
 
     OUT outM[16],        // M value output
-        writeM,          // Write to M? 
+        writeM,          // Write to M (memory, 'load')
         addressM[15],    // Address in data memory (of M)
         pc[15];          // address of next instruction
 

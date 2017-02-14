@@ -2,7 +2,7 @@
 # syntax: dest = comp ; jump
 # or: @value / @variable <- memory pointer
 #
-# A-type instructions (ie. @15) is a memory pointer
+# A-type instructions (ie. @15) are memory pointers
 # C-type instructions follow: 'dest = comp ; jump' where dest, comp and jump are instructions
 # from corresponding dictionaries
 #

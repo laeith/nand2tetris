@@ -15,7 +15,7 @@ import sys
 import re
 from memorylayout import MemoryLayout
 
-global CURRENT_MEMORY_LAYOUT
+global CURRENT_MEMORY_LAYOUT  # Memory layout of currently compiled file.
 
 DEST = {"null": "000",
         "M": "001",
@@ -68,12 +68,14 @@ COMP = {"0": "0101010",
 def assemble(file_name) -> list:
     """Entry point for compilation (assembling) process.
 
-    :param file_name:
+    :param file_name: file path (ie. something.asm)
     :return: a list of tuples: (line_number, assembly_code_line, machine_code_line)
     """
 
     global CURRENT_MEMORY_LAYOUT
-    CURRENT_MEMORY_LAYOUT = MemoryLayout()
+    CURRENT_MEMORY_LAYOUT = MemoryLayout()  # New compilation - new memory layout needed in case
+                                            # the program wasn't restarted after last compilation
+
     translation = []
 
     # First iteration - find all labels and allocate their ROM addresses

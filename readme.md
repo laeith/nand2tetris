@@ -17,9 +17,9 @@
          Memory: Bit, Register, RAM8 ... RAM16K
       - **'hackassembly'** has two basic programs written in hack assembly
       - **'mathunit'** - ALU chip and all supporting chips
-      - **'CPU'** - containes the biggest and final chip - CPU.hdl and Computer.hdl, this is the pinnacle of the hardware part. I didn't put too much effort here, I was basing my solutions on existing ones because I didn't feel like implementing this part would contribute much to my understanding
+      - **'CPU'** - containes the biggest, final chip - CPU.hdl and Computer.hdl, this is the pinnacle of the hardware part. I didn't put too much effort here, I was basing my solutions on existing ones because I didn't feel like implementing this part would contribute much to my understanding
    - **'hack_assembler'** - this is a hack assembler, it basically transforms Hack Assembly into Hack binary code that is runnable by our newly made computer, it's written in Python thus to run it you require Python 3.5+ interpreter. This is basically my own version of the assembler that is already provided in tools.
       
 
 ## Instructions:
-   - One day, when part 2 is finished.
+   - One day, when part 2 is finished (if finished).
